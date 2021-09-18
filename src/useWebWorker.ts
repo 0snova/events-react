@@ -1,32 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-import { DuplexConnector } from '@osnova/events';
+import { DuplexConnector, EventSystemParams } from '@osnova/events';
 import { RequestEvent, UnwrapRequestEvent } from '@osnova/events/EventRequest';
 import { AnyResponseEventMap } from '@osnova/events/EventResponse';
 
-// export interface System<
-//   OutReqEvents extends RequestEvent,
-//   InReqEvents extends RequestEvent,
-//   OutResponseEventMap extends AnyResponseEventMap,
-//   InResponseEventMap extends AnyResponseEventMap
-// > {
-//   request: any;
-//   response: any;
-// }
-
-export interface FederatedSystemParams<
-  OutReqEvents extends RequestEvent,
-  InReqEvents extends RequestEvent,
-  OutResponseEventMap extends AnyResponseEventMap,
-  InResponseEventMap extends AnyResponseEventMap
-> {
-  onBoot(
-    system: Pick<
-      DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>,
-      'request' | 'response'
-    >
-  ): void;
-}
+import { UnwrapPromise } from './types';
 
 export type DuplexConnectorInitializer<
   OutReqEvents extends RequestEvent,
@@ -42,13 +20,16 @@ export function useWebWorker<
   InResponseEventMap extends AnyResponseEventMap
 >(
   initializer: DuplexConnectorInitializer<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>,
-  params: FederatedSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>
+  params: EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>
 ) {
   type RequestType = (
     event: UnwrapRequestEvent<OutReqEvents>
   ) => Promise<InResponseEventMap[`${UnwrapRequestEvent<OutReqEvents>['type']}::response`]>;
 
+  type ConnectorOnType = UnwrapPromise<ReturnType<typeof initializer>>['connector']['on'];
+
   const request = useRef<RequestType | null>(null);
+  const onRef = useRef<ConnectorOnType | null>(null);
   const [response, setResponse] = useState<any>(null);
   const [error, setError] = useState<any>(null);
 
@@ -71,14 +52,15 @@ export function useWebWorker<
     async function doInit() {
       const { connector } = await initializer();
       request.current = connector.request.bind(connector) as RequestType;
+      onRef.current = connector.on.bind(connector);
 
       if (params.onBoot) {
-        params.onBoot({ request: requestDecorator, response });
+        params.onBoot({ request: requestDecorator, response, on: onRef.current });
       }
     }
 
     doInit();
   }, []);
 
-  return { request: requestDecorator, response, error };
+  return { request: requestDecorator, response, error, on: onRef.current };
 }
