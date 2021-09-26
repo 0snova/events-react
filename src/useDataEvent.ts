@@ -32,12 +32,12 @@ export function makeUseDataEvent<
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap
->(source: NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>) {
+>(source: NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> | null) {
   return function useDataEvent<E extends DataEvent>({ eventName, initialValue, onNewValue }: UseDataEventParams<E>) {
     const [value, setValue] = useState(initialValue);
 
     useEffect(() => {
-      if (source.on) {
+      if (source && source.on) {
         const listener = source.on(eventName, (event) => {
           const newValue = event.payload.value;
           setValue(newValue);
@@ -46,7 +46,7 @@ export function makeUseDataEvent<
 
         return () => listener();
       }
-    }, [eventName, source.on, onNewValue]);
+    }, [eventName, source?.on, onNewValue]);
 
     return value;
   };
