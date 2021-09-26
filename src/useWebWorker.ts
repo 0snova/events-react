@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 
 import { DuplexConnector, EventSystemParams } from '@osnova/events';
 import { RequestEvent, UnwrapRequestEvent } from '@osnova/events/EventRequest';
@@ -38,13 +38,13 @@ export function useWebWorker<
   const onRef = useRef<ConnectorOnType | null>(null);
 
   const sourceReadyResolve = useRef<any>(null);
-  const sourceReadyPromise = useRef<any>(
-    new Promise((resolve) => {
+  const sourceReadyPromise = useMemo(() => {
+    return new Promise<any>((resolve) => {
       sourceReadyResolve.current = resolve;
-    })
-  );
+    });
+  }, []);
 
-  const useDataEvent = makeUseDataEvent(sourceReadyPromise.current);
+  const useDataEvent = makeUseDataEvent(sourceReadyPromise);
 
   const requestDecorator = useCallback(async (event: UnwrapRequestEvent<OutReqEvents>) => {
     if (!request.current) {
