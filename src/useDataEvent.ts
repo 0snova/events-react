@@ -5,7 +5,7 @@ import { ClosedConnector, DataEvent } from '@osnova/events';
 export interface UseDataEventParams<E extends DataEvent = DataEvent<any, string>> {
   on: ClosedConnector<E>['on'] | null;
   eventName: E['type'];
-  initialValue: E['payload'];
+  initialValue: E['payload']['value'];
   onNewValue?: (v: E['payload']) => void;
 }
 
