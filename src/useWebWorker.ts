@@ -4,7 +4,8 @@ import { DuplexConnector, EventSystemParams } from '@osnova/events';
 import { RequestEvent, UnwrapRequestEvent } from '@osnova/events/EventRequest';
 import { AnyResponseEventMap } from '@osnova/events/EventResponse';
 
-import { UnwrapPromise } from './types';
+import { UnwrapPromise, NullableSystemConnector } from './types';
+import { makeUseDataEvent, UseDataEventHook } from './useDataEvent';
 
 export type DuplexConnectorInitializer<
   OutReqEvents extends RequestEvent,
@@ -21,7 +22,12 @@ export function useWebWorker<
 >(
   initializer: DuplexConnectorInitializer<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>,
   params: EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>
-) {
+): { useDataEvent: UseDataEventHook } & NullableSystemConnector<
+  OutReqEvents,
+  InReqEvents,
+  OutResponseEventMap,
+  InResponseEventMap
+> {
   type RequestType = (
     event: UnwrapRequestEvent<OutReqEvents>
   ) => Promise<InResponseEventMap[`${UnwrapRequestEvent<OutReqEvents>['type']}::response`]>;
@@ -30,7 +36,6 @@ export function useWebWorker<
 
   const request = useRef<RequestType | null>(null);
   const onRef = useRef<ConnectorOnType | null>(null);
-  const [error, setError] = useState<any>(null);
 
   const requestDecorator = useCallback(async (event: UnwrapRequestEvent<OutReqEvents>) => {
     if (!request.current) {
@@ -56,5 +61,10 @@ export function useWebWorker<
     doInit();
   }, []);
 
-  return { request: requestDecorator, error, on: onRef.current };
+  const systemInterface = { request: requestDecorator, on: onRef.current, makeUseDataEvent };
+  const useDataEvent = makeUseDataEvent(systemInterface);
+
+  return { ...systemInterface, useDataEvent };
 }
+
+export type UsedWebWorkerConnector = ReturnType<typeof useWebWorker>;

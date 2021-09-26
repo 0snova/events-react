@@ -1,33 +1,53 @@
 import { useEffect, useState } from 'react';
 
-import { ClosedConnector, DataEvent } from '@osnova/events';
+import { ClosedConnector, DataEvent, RequestEvent } from '@osnova/events';
+import { AnyResponseEventMap } from '@osnova/events/EventResponse';
 
-export interface UseDataEventParams<E extends DataEvent = DataEvent<any, string>> {
-  on: ClosedConnector<E>['on'] | null;
-  eventName: E['type'];
-  initialValue: E['payload']['value'];
-  onNewValue?: (v: E['payload']) => void;
+import { EventListener } from '@osnova/events/Events';
+import { Unsubscribe } from '@osnova/events/lib/Unsubscribe';
+
+import { UsedWebWorkerConnector } from './useWebWorker';
+import { NullableSystemConnector } from './types';
+
+export interface UseDataEventParams<
+  Event extends DataEvent
+  // OutReqEvents extends RequestEvent,
+  // InReqEvents extends RequestEvent,
+  // OutResponseEventMap extends AnyResponseEventMap,
+  // InResponseEventMap extends AnyResponseEventMap
+> {
+  // source: NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>;
+  // on: (<E extends Event['type']>(eventType: E, listener: EventListener<Event, E>) => Unsubscribe) | null;
+  eventName: Event['type'];
+  initialValue: Event['payload']['value'];
+  onNewValue?: (v: Event['payload']['value']) => void;
 }
 
-export function useDataEvent<E extends DataEvent = DataEvent<any, string>>({
-  eventName,
-  initialValue,
-  on,
-  onNewValue,
-}: UseDataEventParams<E>) {
-  const [value, setValue] = useState(initialValue);
+export type UseDataEventHook = <Event extends DataEvent>(
+  params: UseDataEventParams<Event>
+) => Event['payload']['value'];
 
-  useEffect(() => {
-    if (on) {
-      const listener = on(eventName, (event) => {
-        const newValue = event.payload.value;
-        setValue(newValue);
-        onNewValue?.(newValue);
-      });
+export function makeUseDataEvent<
+  OutReqEvents extends RequestEvent,
+  InReqEvents extends RequestEvent,
+  OutResponseEventMap extends AnyResponseEventMap,
+  InResponseEventMap extends AnyResponseEventMap
+>(source: NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>) {
+  return function useDataEvent<E extends DataEvent>({ eventName, initialValue, onNewValue }: UseDataEventParams<E>) {
+    const [value, setValue] = useState(initialValue);
 
-      return () => listener();
-    }
-  }, [eventName, on, onNewValue]);
+    useEffect(() => {
+      if (source.on) {
+        const listener = source.on(eventName, (event) => {
+          const newValue = event.payload.value;
+          setValue(newValue);
+          onNewValue?.(newValue);
+        });
 
-  return [value];
+        return () => listener();
+      }
+    }, [eventName, source.on, onNewValue]);
+
+    return value;
+  };
 }
