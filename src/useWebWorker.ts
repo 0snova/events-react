@@ -30,7 +30,6 @@ export function useWebWorker<
 
   const request = useRef<RequestType | null>(null);
   const onRef = useRef<ConnectorOnType | null>(null);
-  const [response, setResponse] = useState<any>(null);
   const [error, setError] = useState<any>(null);
 
   const requestDecorator = useCallback(async (event: UnwrapRequestEvent<OutReqEvents>) => {
@@ -40,11 +39,11 @@ export function useWebWorker<
 
     try {
       const response = await request.current(event);
-      setResponse(response);
 
       return response;
     } catch (e) {
       setError(e);
+      return e;
     }
   }, []);
 
@@ -55,12 +54,12 @@ export function useWebWorker<
       onRef.current = connector.on.bind(connector);
 
       if (params.onBoot) {
-        params.onBoot({ request: requestDecorator, response, on: onRef.current });
+        params.onBoot({ request: requestDecorator, on: onRef.current });
       }
     }
 
     doInit();
   }, []);
 
-  return { request: requestDecorator, response, error, on: onRef.current };
+  return { request: requestDecorator, error, on: onRef.current };
 }

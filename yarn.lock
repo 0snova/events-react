@@ -1250,10 +1250,10 @@
   dependencies:
     minimatch "^3.0.4"
 
-"@osnova/events@0.20.0":
-  version "0.20.0"
-  resolved "https://registry.npmjs.org/@osnova/events/-/events-0.20.0.tgz#6632ad703ddeb4397b900beda416ed3b64dbf391"
-  integrity sha512-Rpku1d8vPGecJB3fzqp5flQ8dfJG81QfBymHmwOVvHoqUsmfQPMAo7YuN1ehsNVhNzG9O0nh2jnvfpDR/FiYDg==
+"@osnova/events@0.22.0":
+  version "0.22.0"
+  resolved "https://registry.npmjs.org/@osnova/events/-/events-0.22.0.tgz#cbd001116f640afc40542bddaf178343c5f62e46"
+  integrity sha512-iagDWuiQRMYY2sENWfh9qMtxoVpkxO3vxibrS7B2PelzQiHNZG/FMjBy3F6zLgs1X6ofE24lUMJyd68/z5kjfg==
 
 "@rollup/plugin-commonjs@^17.1.0":
   version "17.1.0"
