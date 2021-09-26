@@ -37,14 +37,9 @@ export function useWebWorker<
       throw new Error(`Unabled to execute request: no request function is provided from `);
     }
 
-    try {
-      const response = await request.current(event);
+    const response = await request.current(event);
 
-      return response;
-    } catch (e) {
-      setError(e);
-      return { error: e };
-    }
+    return response;
   }, []);
 
   useEffect(() => {
