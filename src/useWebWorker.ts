@@ -36,7 +36,15 @@ export function useWebWorker<
 
   const request = useRef<RequestType | null>(null);
   const onRef = useRef<ConnectorOnType | null>(null);
-  const useDataEvent = useRef<UseDataEventHook>(makeUseDataEvent(null));
+
+  const sourceReadyResolve = useRef<any>(null);
+  const sourceReadyPromise = useRef<any>(
+    new Promise((resolve) => {
+      sourceReadyResolve.current = resolve;
+    })
+  );
+
+  const useDataEvent = makeUseDataEvent(sourceReadyPromise.current);
 
   const requestDecorator = useCallback(async (event: UnwrapRequestEvent<OutReqEvents>) => {
     if (!request.current) {
@@ -53,7 +61,7 @@ export function useWebWorker<
       const { connector } = await initializer();
       request.current = connector.request.bind(connector) as RequestType;
       onRef.current = connector.on.bind(connector);
-      useDataEvent.current = makeUseDataEvent({ request: requestDecorator, on: onRef.current });
+      sourceReadyResolve.current({ request: requestDecorator, on: onRef.current });
 
       if (params.onBoot) {
         params.onBoot({ request: requestDecorator, on: onRef.current });
@@ -65,7 +73,7 @@ export function useWebWorker<
 
   const systemInterface = { request: requestDecorator, on: onRef.current };
 
-  return { ...systemInterface, useDataEvent: useDataEvent.current };
+  return { ...systemInterface, useDataEvent };
 }
 
 export type UsedWebWorkerConnector = ReturnType<typeof useWebWorker>;
