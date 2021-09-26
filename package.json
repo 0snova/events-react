@@ -1,6 +1,6 @@
 {
   "name": "@osnova/events-react",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Intersystem communication via Events in React",
   "author": "Alexander Snov",
   "license": "MIT",
@@ -63,7 +63,7 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@osnova/events": "0.22.0"
+    "@osnova/events": "0.23.0"
   },
   "peerDependencies": {
     "react": "^17.0.2"
