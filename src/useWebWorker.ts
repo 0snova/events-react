@@ -43,7 +43,7 @@ export function useWebWorker<
       return response;
     } catch (e) {
       setError(e);
-      return e;
+      return { error: e };
     }
   }, []);
 
