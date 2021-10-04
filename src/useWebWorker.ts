@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { DuplexConnector, EventSystemParams } from '@osnova/events';
 import { RequestEvent, UnwrapRequestEvent } from '@osnova/events/EventRequest';
 import { AnyResponseEventMap } from '@osnova/events/EventResponse';
 
-import { UnwrapPromise, NullableSystemConnector } from './types';
+import { NullableSystemConnector, RequestType, OnType } from './types';
 import { makeUseDataEvent, UseDataEventHook } from './useDataEvent';
 
 export type DuplexConnectorInitializer<
@@ -28,14 +28,8 @@ export function useWebWorker<
   OutResponseEventMap,
   InResponseEventMap
 > {
-  type RequestType = (
-    event: UnwrapRequestEvent<OutReqEvents>
-  ) => Promise<InResponseEventMap[`${UnwrapRequestEvent<OutReqEvents>['type']}::response`]>;
-
-  type ConnectorOnType = UnwrapPromise<ReturnType<typeof initializer>>['connector']['on'];
-
-  const request = useRef<RequestType | null>(null);
-  const onRef = useRef<ConnectorOnType | null>(null);
+  const request = useRef<RequestType<OutReqEvents, InResponseEventMap> | null>(null);
+  const onRef = useRef<OnType<InReqEvents, InResponseEventMap> | null>(null);
 
   const sourceReadyResolve = useRef<any>(null);
   const sourceReadyPromise = useMemo(() => {
@@ -59,7 +53,7 @@ export function useWebWorker<
   useEffect(() => {
     async function doInit() {
       const { connector } = await initializer();
-      request.current = connector.request.bind(connector) as RequestType;
+      request.current = connector.request.bind(connector);
       onRef.current = connector.on.bind(connector);
       sourceReadyResolve.current({ request: requestDecorator, on: onRef.current });
 
