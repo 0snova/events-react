@@ -1,5 +1,5 @@
 import { RequestEvent, UnwrapRequestEvent } from '@osnova/events/EventRequest';
-import { AnyResponseEventMap } from '@osnova/events/EventResponse';
+import { AnyResponseEventMap, ResponseTypeFromRequestType } from '@osnova/events/EventResponse';
 
 import { Unsubscribe } from '@osnova/events/lib/Unsubscribe';
 import { EventListener } from '@osnova/events/Events';
@@ -7,10 +7,10 @@ import { EventListener } from '@osnova/events/Events';
 export type UnwrapPromise<T> = T extends Promise<infer P> ? P : never;
 
 export type RequestType<OutReqEvents extends RequestEvent, InResponseEventMap extends AnyResponseEventMap> = <
-  E extends OutReqEvents
+  E extends UnwrapRequestEvent<OutReqEvents>
 >(
-  event: UnwrapRequestEvent<E>
-) => Promise<InResponseEventMap[`${UnwrapRequestEvent<E>['type']}::response`]['payload']>;
+  event: E
+) => Promise<InResponseEventMap[ResponseTypeFromRequestType<E['type']>]['payload']>;
 
 export type OnType<InReqEvents extends RequestEvent, InResponseEventMap extends AnyResponseEventMap> = <
   E extends (InReqEvents | InResponseEventMap[keyof InResponseEventMap])['type']

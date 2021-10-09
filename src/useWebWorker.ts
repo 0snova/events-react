@@ -29,7 +29,7 @@ export function useWebWorker<
   InResponseEventMap
 > {
   const request = useRef<RequestType<OutReqEvents, InResponseEventMap> | null>(null);
-  const onRef = useRef<OnType<InReqEvents, InResponseEventMap> | null>(null);
+  const on = useRef<OnType<InReqEvents, InResponseEventMap> | null>(null);
 
   const sourceReadyResolve = useRef<any>(null);
   const sourceReadyPromise = useMemo(() => {
@@ -40,32 +40,22 @@ export function useWebWorker<
 
   const useDataEvent = makeUseDataEvent(sourceReadyPromise);
 
-  const requestDecorator = useCallback(async <E extends OutReqEvents>(event: UnwrapRequestEvent<E>) => {
-    if (!request.current) {
-      throw new Error(`Unabled to execute request: no request function is provided from `);
-    }
-
-    const response = await request.current(event);
-
-    return response;
-  }, []);
-
   useEffect(() => {
     async function doInit() {
       const { connector } = await initializer();
       request.current = connector.request.bind(connector);
-      onRef.current = connector.on.bind(connector);
-      sourceReadyResolve.current({ request: requestDecorator, on: onRef.current });
+      on.current = connector.on.bind(connector);
+      sourceReadyResolve.current({ request: request.current, on: on.current });
 
       if (params.onBoot) {
-        params.onBoot({ request: requestDecorator, on: onRef.current });
+        params.onBoot({ request: request.current, on: on.current });
       }
     }
 
     doInit();
   }, []);
 
-  const systemInterface = { request: requestDecorator, on: onRef.current };
+  const systemInterface = { request: request.current, on: on.current };
 
   return { ...systemInterface, useDataEvent };
 }
