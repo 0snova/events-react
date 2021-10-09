@@ -6,9 +6,11 @@ import { EventListener } from '@osnova/events/Events';
 
 export type UnwrapPromise<T> = T extends Promise<infer P> ? P : never;
 
-export type RequestType<OutReqEvents extends RequestEvent, InResponseEventMap extends AnyResponseEventMap> = (
-  event: UnwrapRequestEvent<OutReqEvents>
-) => Promise<InResponseEventMap[`${UnwrapRequestEvent<OutReqEvents>['type']}::response`]['payload']>;
+export type RequestType<OutReqEvents extends RequestEvent, InResponseEventMap extends AnyResponseEventMap> = <
+  E extends OutReqEvents
+>(
+  event: UnwrapRequestEvent<E>
+) => Promise<InResponseEventMap[`${UnwrapRequestEvent<E>['type']}::response`]['payload']>;
 
 export type OnType<InReqEvents extends RequestEvent, InResponseEventMap extends AnyResponseEventMap> = <
   E extends (InReqEvents | InResponseEventMap[keyof InResponseEventMap])['type']

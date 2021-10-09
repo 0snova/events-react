@@ -40,7 +40,7 @@ export function useWebWorker<
 
   const useDataEvent = makeUseDataEvent(sourceReadyPromise);
 
-  const requestDecorator = useCallback(async (event: UnwrapRequestEvent<OutReqEvents>) => {
+  const requestDecorator = useCallback(async <E extends OutReqEvents>(event: UnwrapRequestEvent<E>) => {
     if (!request.current) {
       throw new Error(`Unabled to execute request: no request function is provided from `);
     }
