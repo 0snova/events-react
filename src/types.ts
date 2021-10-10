@@ -4,6 +4,8 @@ import { AnyResponseEventMap, ResponseTypeFromRequestType } from '@osnova/events
 import { Unsubscribe } from '@osnova/events/lib/Unsubscribe';
 import { EventListener } from '@osnova/events/Events';
 
+import { UseDataEventHook } from './useDataEvent';
+
 export type UnwrapPromise<T> = T extends Promise<infer P> ? P : never;
 
 export type RequestType<OutReqEvents extends RequestEvent, InResponseEventMap extends AnyResponseEventMap> = <
@@ -27,4 +29,6 @@ export interface NullableSystemConnector<
 > {
   request: RequestType<OutReqEvents, InResponseEventMap> | null;
   on: OnType<InReqEvents, InResponseEventMap> | null;
+  useDataEvent: UseDataEventHook;
+  isReady: boolean;
 }

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
 
 import { DuplexConnector, EventSystemParams } from '@osnova/events';
-import { RequestEvent, UnwrapRequestEvent } from '@osnova/events/EventRequest';
+import { RequestEvent } from '@osnova/events/EventRequest';
 import { AnyResponseEventMap } from '@osnova/events/EventResponse';
 
 import { NullableSystemConnector, RequestType, OnType } from './types';
-import { makeUseDataEvent, UseDataEventHook } from './useDataEvent';
+import { makeUseDataEvent } from './useDataEvent';
 
 export type DuplexConnectorInitializer<
   OutReqEvents extends RequestEvent,
@@ -22,12 +22,7 @@ export function useWebWorker<
 >(
   initializer: DuplexConnectorInitializer<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>,
   params: EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>
-): { isReady: boolean; useDataEvent: UseDataEventHook } & NullableSystemConnector<
-  OutReqEvents,
-  InReqEvents,
-  OutResponseEventMap,
-  InResponseEventMap
-> {
+): NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> {
   const [isReady, setIsReady] = useState(false);
   const request = useRef<RequestType<OutReqEvents, InResponseEventMap> | null>(null);
   const on = useRef<OnType<InReqEvents, InResponseEventMap> | null>(null);
