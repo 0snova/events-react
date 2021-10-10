@@ -20,7 +20,9 @@ export function makeUseDataEventRaw<
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap
->(sourcePromise: Promise<NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>>) {
+>(
+  sourcePromise: NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>['onReady']
+) {
   const useDataEvent = function useDataEvent<E extends DataEvent>({
     eventName,
     initialValue,

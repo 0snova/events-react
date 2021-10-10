@@ -4,7 +4,7 @@ import { DuplexConnector, EventSystemParams } from '@osnova/events';
 import { RequestEvent } from '@osnova/events/EventRequest';
 import { AnyResponseEventMap } from '@osnova/events/EventResponse';
 
-import { NullableSystemConnector, RequestType, OnType } from './types';
+import { NullableSystemConnector, RequestType, OnType, UnwrapPromise } from './types';
 import { makeUseDataEvent } from './useDataEvent';
 
 export type DuplexConnectorInitializer<
@@ -14,7 +14,7 @@ export type DuplexConnectorInitializer<
   InResponseEventMap extends AnyResponseEventMap
 > = () => Promise<{ connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> }>;
 
-export function useWebWorker<
+export function useConnectorInitializer<
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
@@ -29,7 +29,11 @@ export function useWebWorker<
 
   const sourceReadyResolve = useRef<any>(null);
   const sourceReadyPromise = useMemo(() => {
-    return new Promise<any>((resolve) => {
+    return new Promise<
+      UnwrapPromise<
+        NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>['onReady']
+      >
+    >((resolve) => {
       sourceReadyResolve.current = resolve;
     });
   }, []);
@@ -55,7 +59,7 @@ export function useWebWorker<
 
   const systemInterface = { request: request.current, on: on.current };
 
-  return { ...systemInterface, useDataEvent, isReady };
+  return { ...systemInterface, useDataEvent, isReady, onReady: sourceReadyPromise };
 }
 
-export type UsedWebWorkerConnector = ReturnType<typeof useWebWorker>;
+export type UseConnectorInitializer = ReturnType<typeof useConnectorInitializer>;

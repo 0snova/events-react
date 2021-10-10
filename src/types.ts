@@ -29,6 +29,12 @@ export interface NullableSystemConnector<
 > {
   request: RequestType<OutReqEvents, InResponseEventMap> | null;
   on: OnType<InReqEvents, InResponseEventMap> | null;
+
   useDataEvent: UseDataEventHook;
+
   isReady: boolean;
+  onReady: Promise<{
+    request: RequestType<OutReqEvents, InResponseEventMap>;
+    on: OnType<InReqEvents, InResponseEventMap>;
+  }>;
 }

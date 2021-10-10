@@ -1,6 +1,7 @@
-export { useWebWorker } from './useWebWorker';
-export type { DuplexConnectorInitializer } from './useWebWorker';
+export { useConnectorInitializer } from './useConnectorInitializer';
+export type { DuplexConnectorInitializer, UseConnectorInitializer } from './useConnectorInitializer';
 
 export type { UseDataEventHook, UseDataEventParams } from './useDataEvent';
+export { createConnectorContext, createUseConnectorContext } from './ConnectorContext';
 
 export type { NullableSystemConnector } from './types';
