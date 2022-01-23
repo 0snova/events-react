@@ -31,7 +31,7 @@ export function useConnectorInitializer<
 >(
   initializer: DuplexConnectorInitializer<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>,
   params: ConnectorInitializerParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>
-): NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> {
+): NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap> {
   const [isReady, setIsReady] = useState(false);
   const request = useRef<RequestType<OutReqEvents, InResponseEventMap> | null>(null);
   const on = useRef<OnType<InReqEvents, InResponseEventMap> | null>(null);
@@ -39,9 +39,7 @@ export function useConnectorInitializer<
   const sourceReadyResolve = useRef<any>(null);
   const sourceReadyPromise = useMemo(() => {
     return new Promise<
-      UnwrapPromise<
-        NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>['onReady']
-      >
+      UnwrapPromise<NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap>['onReady']>
     >((resolve) => {
       sourceReadyResolve.current = resolve;
     });

@@ -18,11 +18,8 @@ export type UseDataEventHook = <Event extends DataEvent>(
 export function makeUseDataEventRaw<
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
-  OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap
->(
-  sourcePromise: NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>['onReady']
-) {
+>(sourcePromise: NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap>['onReady']) {
   const useDataEvent = function useDataEvent<E extends DataEvent>({
     eventName,
     initialValue,

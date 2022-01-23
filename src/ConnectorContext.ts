@@ -7,19 +7,14 @@ import { NullableSystemConnector } from './types';
 export const createConnectorContext = <
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
-  OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap
->() =>
-  createContext<NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>>({} as any);
+>() => createContext<NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap>>({} as any);
 
 export function createUseConnectorContext<
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
-  OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap
->(
-  connectorContext: Context<NullableSystemConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>>
-) {
+>(connectorContext: Context<NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap>>) {
   return function useConnectorContext() {
     const context = useContext(connectorContext);
     if (!context) {

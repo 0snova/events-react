@@ -24,10 +24,9 @@ export type OnType<InReqEvents extends RequestEvent, InResponseEventMap extends 
 export interface NullableSystemConnector<
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
-  OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap
 > {
-  request: RequestType<OutReqEvents, InResponseEventMap> | null;
+  request: RequestType<OutReqEvents, InResponseEventMap>;
   on: OnType<InReqEvents, InResponseEventMap> | null;
 
   useDataEvent: UseDataEventHook;
