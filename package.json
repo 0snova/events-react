@@ -1,6 +1,6 @@
 {
   "name": "@osnova/events-react",
-  "version": "0.21.1",
+  "version": "0.22.0",
   "description": "Intersystem communication via Events in React",
   "author": "Alexander Snov",
   "license": "MIT",
