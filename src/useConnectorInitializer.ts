@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState } from 'react';
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 
 import { DuplexConnector, EventSystemParams } from '@osnova/events';
 import { RequestEvent } from '@osnova/events/EventRequest';
@@ -19,7 +19,7 @@ export interface ConnectorInitializerParams<
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap
-> extends EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> {
+> extends Partial<EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>> {
   requestTimeout?: number;
 }
 
@@ -58,7 +58,7 @@ export function useConnectorInitializer<
 
       setIsReady(true);
 
-      if (params.onBoot) {
+      if (typeof params.onBoot === 'function') {
         params.onBoot({ request: request.current, on: on.current });
       }
     }
@@ -66,26 +66,34 @@ export function useConnectorInitializer<
     doInit();
   }, []);
 
-  const systemInterface = { request: request.current, on: on.current };
+  const requestWithTimeout: RequestType<OutReqEvents, InResponseEventMap> = useCallback(
+    (event) => {
+      const requestTimeout = params.requestTimeout ?? 1000;
+      const r = request.current;
 
-  const onReady = useMemo(async () => {
-    const requestTimeout = params.requestTimeout ?? 1000;
-    const { request, on } = await sourceReadyPromise;
+      if (!r) {
+        return Promise.reject({ error: 'Unavailable', message: `Request is not ready` });
+      }
 
-    const requestWithTimeout: RequestType<OutReqEvents, InResponseEventMap> = (event) =>
-      Promise.race([
-        request(event),
+      return Promise.race([
+        r(event),
         new Promise((_, reject) =>
           setTimeout(() => {
-            reject({ error: `Timeout` });
+            reject({ error: `Timeout`, message: `Reached timeout while waiting for response` });
           }, requestTimeout)
         ),
       ]);
+    },
+    [params.requestTimeout]
+  );
+
+  const onReady = useMemo(async () => {
+    const { on } = await sourceReadyPromise;
 
     return { request: requestWithTimeout, on };
   }, [params.requestTimeout]);
 
-  return { ...systemInterface, useDataEvent, isReady, onReady };
+  return { request: requestWithTimeout, on: on.current, useDataEvent, isReady, onReady };
 }
 
 export type UseConnectorInitializer = ReturnType<typeof useConnectorInitializer>;
