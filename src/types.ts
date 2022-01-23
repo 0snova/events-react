@@ -17,7 +17,7 @@ export type RequestType<OutReqEvents extends RequestEvent, InResponseEventMap ex
 export type OnType<InReqEvents extends RequestEvent, InResponseEventMap extends AnyResponseEventMap> = <
   E extends (InReqEvents | InResponseEventMap[keyof InResponseEventMap])['type']
 >(
-  eventType: E,
+  eventType: E | '*',
   listener: EventListener<InReqEvents | InResponseEventMap[keyof InResponseEventMap], E>
 ) => Unsubscribe;
 
