@@ -4,7 +4,7 @@ import { DuplexConnector, EventSystemParams } from '@osnova/events';
 import { RequestEvent } from '@osnova/events/EventRequest';
 import { AnyResponseEventMap } from '@osnova/events/EventResponse';
 
-import { NullableSystemConnector, RequestType, OnType, UnwrapPromise } from './types';
+import { NullableSystemConnector, RequestType, OnType, UnwrapPromise, UseConnectorInitializerResult } from './types';
 import { makeUseDataEvent } from './useDataEvent';
 
 export type DuplexConnectorInitializer<
@@ -12,12 +12,17 @@ export type DuplexConnectorInitializer<
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap,
+  External extends Record<string, any>,
   InitializerArg = undefined
 > = InitializerArg extends undefined
-  ? () => Promise<{ connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> }>
-  : (
-      arg: InitializerArg
-    ) => Promise<{ connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> }>;
+  ? () => Promise<{
+      external: External;
+      connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>;
+    }>
+  : (arg: InitializerArg) => Promise<{
+      external: External;
+      connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>;
+    }>;
 
 export type ConnectorInitializerParams<
   OutReqEvents extends RequestEvent,
@@ -40,6 +45,7 @@ export function useConnectorInitializer<
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
   InResponseEventMap extends AnyResponseEventMap,
+  External extends Record<string, any>,
   InitializerArg = undefined
 >(
   initializer: DuplexConnectorInitializer<
@@ -47,13 +53,15 @@ export function useConnectorInitializer<
     InReqEvents,
     OutResponseEventMap,
     InResponseEventMap,
+    External,
     InitializerArg
   >,
   params: ConnectorInitializerParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap, InitializerArg>
-): NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap> {
+): UseConnectorInitializerResult<OutReqEvents, InReqEvents, InResponseEventMap, External> {
   const [isReady, setIsReady] = useState(false);
   const request = useRef<RequestType<OutReqEvents, InResponseEventMap> | null>(null);
   const on = useRef<OnType<InReqEvents, InResponseEventMap> | null>(null);
+  const rest = useRef<External>({} as External);
 
   const sourceReadyResolve = useRef<any>(null);
   const sourceReadyPromise = useMemo(() => {
@@ -68,11 +76,12 @@ export function useConnectorInitializer<
 
   useEffect(() => {
     async function doInit() {
-      const { connector } = await initializer(params.arg as InitializerArg);
+      const { connector, external } = await initializer(params.arg as InitializerArg);
       request.current = connector.request.bind(connector);
       on.current = connector.on.bind(connector);
       sourceReadyResolve.current({ request: request.current, on: on.current });
 
+      rest.current = external;
       setIsReady(true);
 
       if (typeof params.onBoot === 'function') {
@@ -110,7 +119,8 @@ export function useConnectorInitializer<
     return { request: requestWithTimeout, on };
   }, [params.requestTimeout]);
 
-  return { request: requestWithTimeout, on: on.current, useDataEvent, isReady, onReady };
+  return {
+    external: rest.current,
+    connector: { request: requestWithTimeout, on: on.current, useDataEvent, isReady, onReady },
+  };
 }
-
-export type UseConnectorInitializer = ReturnType<typeof useConnectorInitializer>;

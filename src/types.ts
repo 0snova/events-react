@@ -37,3 +37,13 @@ export interface NullableSystemConnector<
     on: OnType<InReqEvents, InResponseEventMap>;
   }>;
 }
+
+export type UseConnectorInitializerResult<
+  OutReqEvents extends RequestEvent,
+  InReqEvents extends RequestEvent,
+  InResponseEventMap extends AnyResponseEventMap,
+  External extends Record<string, any> = Record<string, never>
+> = {
+  external: External;
+  connector: NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap>;
+};
