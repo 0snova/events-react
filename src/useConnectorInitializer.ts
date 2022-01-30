@@ -11,26 +11,45 @@ export type DuplexConnectorInitializer<
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
-  InResponseEventMap extends AnyResponseEventMap
-> = () => Promise<{ connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> }>;
+  InResponseEventMap extends AnyResponseEventMap,
+  InitializerArg = undefined
+> = InitializerArg extends undefined
+  ? () => Promise<{ connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> }>
+  : (
+      arg: InitializerArg
+    ) => Promise<{ connector: DuplexConnector<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap> }>;
 
-export interface ConnectorInitializerParams<
+export type ConnectorInitializerParams<
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
-  InResponseEventMap extends AnyResponseEventMap
-> extends Partial<EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>> {
-  requestTimeout?: number;
-}
+  InResponseEventMap extends AnyResponseEventMap,
+  InitializerArg = undefined
+> = InitializerArg extends undefined
+  ? Partial<EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>> & {
+      requestTimeout?: number;
+      arg?: undefined;
+    }
+  : Partial<EventSystemParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>> & {
+      requestTimeout?: number;
+      arg: InitializerArg;
+    };
 
 export function useConnectorInitializer<
   OutReqEvents extends RequestEvent,
   InReqEvents extends RequestEvent,
   OutResponseEventMap extends AnyResponseEventMap,
-  InResponseEventMap extends AnyResponseEventMap
+  InResponseEventMap extends AnyResponseEventMap,
+  InitializerArg = undefined
 >(
-  initializer: DuplexConnectorInitializer<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>,
-  params: ConnectorInitializerParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap>
+  initializer: DuplexConnectorInitializer<
+    OutReqEvents,
+    InReqEvents,
+    OutResponseEventMap,
+    InResponseEventMap,
+    InitializerArg
+  >,
+  params: ConnectorInitializerParams<OutReqEvents, InReqEvents, OutResponseEventMap, InResponseEventMap, InitializerArg>
 ): NullableSystemConnector<OutReqEvents, InReqEvents, InResponseEventMap> {
   const [isReady, setIsReady] = useState(false);
   const request = useRef<RequestType<OutReqEvents, InResponseEventMap> | null>(null);
@@ -49,7 +68,7 @@ export function useConnectorInitializer<
 
   useEffect(() => {
     async function doInit() {
-      const { connector } = await initializer();
+      const { connector } = await initializer(params.arg as InitializerArg);
       request.current = connector.request.bind(connector);
       on.current = connector.on.bind(connector);
       sourceReadyResolve.current({ request: request.current, on: on.current });
